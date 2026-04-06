@@ -8,13 +8,13 @@ Competitive programming + regular C++ workflow in Neovim with LazyVim.
 
 | Key | What it does |
 |-----|-------------|
-| `F4` | Open CP layout — splits into code / input.txt / output.txt |
-| `F5` | Simple compile + run — output pops in a terminal below (works anywhere) |
-| `F6` | CP compile + run — auto-saves, feeds input.txt, dumps to output.txt |
+| `F6` | Open CP layout — splits into code / input.txt / output.txt |
+| `F7` | Simple compile + run — output pops in a terminal below (works anywhere) |
+| `F8` | CP compile + run — auto-saves, feeds input.txt, dumps to output.txt |
 
 ---
 
-## Layout (F4)
+## Layout (F6)
 
 ```
 ┌─────────────────┬──────────────┐
@@ -41,7 +41,20 @@ These are built into Neovim — no configuration needed.
 
 ## Installation
 
-### 1. Add keymaps
+### Automatic (recommended)
+
+```bash
+git clone https://github.com/akscn/nvim-cp-setup
+cd nvim-cp-setup
+chmod +x setup.sh
+./setup.sh
+```
+
+That's it. The script handles everything.
+
+### Manual
+
+#### 1. Add keymaps
 
 Copy `keymaps.lua` to:
 
@@ -49,25 +62,34 @@ Copy `keymaps.lua` to:
 ~/.config/nvim/lua/config/keymaps.lua
 ```
 
-### 2. Add fish function
+#### 2. Add mkcp function
 
-Add this to `~/.config/fish/config.fish` inside the `if status is-interactive` block:
-
+**Fish:**
 ```fish
-# CP folder creator
 function mkcp
     mkdir -p $argv
     touch $argv/input.txt $argv/output.txt
 end
 ```
+Add inside the `if status is-interactive` block in `~/.config/fish/config.fish`
 
-Then reload fish:
-
+**Bash/Zsh:**
 ```bash
-source ~/.config/fish/config.fish
+mkcp() {
+    mkdir -p "$1"
+    touch "$1/input.txt" "$1/output.txt"
+}
+```
+Add to `~/.bashrc` or `~/.zshrc`
+
+Then reload your shell:
+```bash
+source ~/.config/fish/config.fish   # fish
+source ~/.bashrc                     # bash
+source ~/.zshrc                      # zsh
 ```
 
-### 3. Create your CP folder structure
+#### 3. Create your CP folder structure
 
 ```bash
 mkcp ~/Dev/cp
@@ -114,10 +136,10 @@ nvim twosum.cpp
 
 Inside nvim:
 1. Write your solution
-2. `F4` — open layout (once per session)
+2. `F6` — open layout (once per session)
 3. `Ctrl+w l` — jump to input.txt, type test case
 4. `Ctrl+w h` — back to code
-5. `F6` — output appears instantly in bottom right pane
+5. `F8` — output appears instantly in bottom right pane
 6. Repeat step 5 forever
 
 ### Regular C++
@@ -129,7 +151,7 @@ nvim hello.cpp
 
 Inside nvim:
 1. Write your code
-2. `F5` — compiles and runs, output pops below
+2. `F7` — compiles and runs, output pops below
 
 ---
 
@@ -137,4 +159,3 @@ Inside nvim:
 
 - Neovim with LazyVim
 - `g++` installed
-- Fish shell (for `mkcp` function)
