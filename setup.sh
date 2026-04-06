@@ -1,14 +1,61 @@
 #!/usr/bin/env bash
 
-echo "==> Setting up Neovim CP workflow..."
+echo ""
+echo "======================================"
+echo "   Neovim CP Setup — LazyVim"
+echo "======================================"
+echo ""
 
-# ── 1. Add mkcp to config.fish ─────────────────────────────────────────────
-FISH_CONFIG="$HOME/.config/fish/config.fish"
+# ── Requirements check ─────────────────────────────────────────────────────
+echo "==> Checking requirements..."
 
-if grep -q "function mkcp" "$FISH_CONFIG"; then
-  echo "✓ mkcp already in config.fish, skipping"
+MISSING=0
+
+if ! command -v nvim &> /dev/null; then
+  echo "✗ Neovim not found — install it first"
+  MISSING=1
 else
-  cat >> "$FISH_CONFIG" << 'FISH'
+  echo "✓ Neovim found"
+fi
+
+if ! command -v g++ &> /dev/null; then
+  echo "✗ g++ not found — install it with: sudo pacman -S gcc"
+  MISSING=1
+else
+  echo "✓ g++ found"
+fi
+
+if [ ! -d "$HOME/.config/nvim/lua/config" ]; then
+  echo "✗ LazyVim config not found at ~/.config/nvim/lua/config"
+  MISSING=1
+else
+  echo "✓ LazyVim config found"
+fi
+
+if [ $MISSING -eq 1 ]; then
+  echo ""
+  echo "✗ Missing requirements. Fix the above and re-run."
+  exit 1
+fi
+
+echo ""
+
+# ── Detect shell and add mkcp ───────────────────────────────────────────────
+echo "==> Detecting shell..."
+
+CURRENT_SHELL=$(basename "$SHELL")
+echo "✓ Default shell: $CURRENT_SHELL"
+
+add_mkcp_fish() {
+  FISH_CONFIG="$HOME/.config/fish/config.fish"
+  if [ ! -f "$FISH_CONFIG" ]; then
+    echo "✗ Fish config not found at $FISH_CONFIG"
+    return
+  fi
+  if grep -q "function mkcp" "$FISH_CONFIG"; then
+    echo "✓ mkcp already in config.fish, skipping"
+  else
+    cat >> "$FISH_CONFIG" << 'FISH'
 
 # CP folder creator
 function mkcp
@@ -16,15 +63,67 @@ function mkcp
     touch $argv/input.txt $argv/output.txt
 end
 FISH
-  echo "✓ mkcp added to config.fish"
-fi
+    echo "✓ mkcp added to config.fish"
+  fi
+}
 
-# ── 2. Create input.txt and output.txt in ~/Dev/cp ─────────────────────────
+add_mkcp_bash() {
+  BASH_CONFIG="$HOME/.bashrc"
+  if grep -q "function mkcp" "$BASH_CONFIG" || grep -q "mkcp()" "$BASH_CONFIG"; then
+    echo "✓ mkcp already in .bashrc, skipping"
+  else
+    cat >> "$BASH_CONFIG" << 'BASH'
+
+# CP folder creator
+mkcp() {
+    mkdir -p "$1"
+    touch "$1/input.txt" "$1/output.txt"
+}
+BASH
+    echo "✓ mkcp added to .bashrc"
+  fi
+}
+
+add_mkcp_zsh() {
+  ZSH_CONFIG="$HOME/.zshrc"
+  if grep -q "function mkcp" "$ZSH_CONFIG" || grep -q "mkcp()" "$ZSH_CONFIG"; then
+    echo "✓ mkcp already in .zshrc, skipping"
+  else
+    cat >> "$ZSH_CONFIG" << 'ZSH'
+
+# CP folder creator
+mkcp() {
+    mkdir -p "$1"
+    touch "$1/input.txt" "$1/output.txt"
+}
+ZSH
+    echo "✓ mkcp added to .zshrc"
+  fi
+}
+
+case "$CURRENT_SHELL" in
+  fish) add_mkcp_fish ;;
+  bash) add_mkcp_bash ;;
+  zsh)  add_mkcp_zsh ;;
+  *)
+    echo "! Unknown shell: $CURRENT_SHELL"
+    echo "  Manually add mkcp to your shell config — see README"
+    ;;
+esac
+
+echo ""
+
+# ── Create ~/Dev/cp with input/output ──────────────────────────────────────
+echo "==> Creating ~/Dev/cp..."
 mkdir -p "$HOME/Dev/cp"
 touch "$HOME/Dev/cp/input.txt" "$HOME/Dev/cp/output.txt"
-echo "✓ input.txt and output.txt created in ~/Dev/cp"
+echo "✓ ~/Dev/cp ready with input.txt and output.txt"
 
-# ── 3. Write keymaps.lua ───────────────────────────────────────────────────
+echo ""
+
+# ── Write keymaps.lua ───────────────────────────────────────────────────────
+echo "==> Writing keymaps.lua..."
+
 KEYMAPS="$HOME/.config/nvim/lua/config/keymaps.lua"
 
 cat > "$KEYMAPS" << 'LUA'
@@ -84,13 +183,18 @@ LUA
 
 echo "✓ keymaps.lua written"
 
-# ── 4. Done ────────────────────────────────────────────────────────────────
 echo ""
-echo "✓ All done! Now:"
-echo "  1. Restart your terminal (or run: source ~/.config/fish/config.fish)"
-echo "  2. Use mkcp to create new CP folders: mkcp ~/Dev/cp/arrays"
+echo "======================================"
+echo "✓ Setup complete!"
+echo "======================================"
 echo ""
-echo "  Keybinds:"
+echo "  Restart your terminal, then:"
+echo "  → Use mkcp to create CP subfolders:"
+echo "    mkcp ~/Dev/cp/arrays"
+echo "    mkcp ~/Dev/cp/dp"
+echo ""
+echo "  Keybinds in Neovim:"
 echo "  F6 → open CP layout"
 echo "  F7 → simple compile + run"
 echo "  F8 → CP compile + run with input/output"
+echo ""
