@@ -4,7 +4,7 @@
 
 -- Normal cpp run (works for any .cpp file anywhere)
 -- F5: compiles and runs, output pops in a small terminal below
-vim.keymap.set("n", "<F5>", function()
+vim.keymap.set("n", "<F7>", function()
   local file = vim.fn.expand("%:p")
   local bin = vim.fn.expand("%:p:r")
   vim.cmd("botright 10split")
@@ -15,7 +15,7 @@ end, { desc = "Run: simple compile + run" })
 -- CP layout opener (press once per session)
 -- F4: splits into code | input.txt / output.txt layout
 -- Won't open twice if layout is already open
-vim.keymap.set("n", "<F4>", function()
+vim.keymap.set("n", "<F6>", function()
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
     if vim.api.nvim_buf_get_name(buf):match("input%.txt$") then
       vim.notify("CP layout already open", vim.log.levels.WARN)
@@ -30,7 +30,7 @@ end, { desc = "CP: open layout" })
 -- CP run (auto-saves everything before compiling)
 -- F6: saves all buffers, compiles, feeds input.txt, writes output.txt
 -- output.txt auto-reloads in its pane
-vim.keymap.set("n", "<F6>", function()
+vim.keymap.set("n", "<F8>", function()
   vim.cmd("silent! wall")
   local file = vim.fn.expand("%:p")
   local dir = vim.fn.expand("%:p:h")
