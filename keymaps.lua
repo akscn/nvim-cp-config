@@ -2,19 +2,32 @@
 -- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
 -- Add any additional keymaps here
 
--- Normal cpp run (works for any .cpp file anywhere)
--- F5: compiles and runs, output pops in a small terminal below
+-- Multi-language run (F7)
 vim.keymap.set("n", "<F7>", function()
+  vim.cmd("silent! wall")
   local file = vim.fn.expand("%:p")
-  local bin = vim.fn.expand("%:p:r")
-  vim.cmd("botright 10split")
-  vim.cmd("terminal cd " .. vim.fn.expand("%:p:h") .. " && g++ -g " .. file .. " -o " .. bin .. " && " .. bin)
-  vim.cmd("startinsert")
-end, { desc = "Run: simple compile + run" })
+  local dir  = vim.fn.expand("%:p:h")
+  local bin  = vim.fn.expand("%:p:r")
+  local ext  = vim.fn.expand("%:e")
 
--- CP layout opener (press once per session)
--- F4: splits into code | input.txt / output.txt layout
--- Won't open twice if layout is already open
+  local cmd
+  if ext == "cpp" then
+    cmd = "cd " .. dir .. " && g++ -g " .. file .. " -o " .. bin .. " && " .. bin
+  elseif ext == "py" then
+    cmd = "cd " .. dir .. " && python3 " .. file
+  elseif ext == "js" then
+    cmd = "cd " .. dir .. " && node " .. file
+  else
+    vim.notify("Unsupported filetype: " .. ext, vim.log.levels.WARN)
+    return
+  end
+
+  vim.cmd("botright 10split")
+  vim.cmd("terminal " .. cmd)
+  vim.cmd("startinsert")
+end, { desc = "Run: compile + run (cpp/py/js)" })
+
+-- CP layout
 vim.keymap.set("n", "<F6>", function()
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
     if vim.api.nvim_buf_get_name(buf):match("input%.txt$") then
@@ -27,9 +40,7 @@ vim.keymap.set("n", "<F6>", function()
   vim.cmd("wincmd h")
 end, { desc = "CP: open layout" })
 
--- CP run (auto-saves everything before compiling)
--- F6: saves all buffers, compiles, feeds input.txt, writes output.txt
--- output.txt auto-reloads in its pane
+-- CP run
 vim.keymap.set("n", "<F8>", function()
   vim.cmd("silent! wall")
   local file = vim.fn.expand("%:p")
